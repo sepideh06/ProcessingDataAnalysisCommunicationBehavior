@@ -1,0 +1,45 @@
+import pandas as pd
+from sklearn.decomposition import PCA
+import math
+
+
+logicalLink = pd.read_csv('LogicalLink-2.csv')
+# Just take these features of interest
+df = logicalLink[['TT','UT','RP','CML','SP','LP']]
+
+df.describe()
+#print(df)
+
+
+pca = PCA(n_components=2, svd_solver='full')
+pca.fit(df)
+T = pca.transform(df)
+df.shape
+df.head()
+pca.explained_variance_ratio_
+print(pca.components_)
+components = pd.DataFrame(pca.components_, columns = df.columns, index=[1, 2])
+
+print("component")
+print(components)
+
+def get_important_features(transformed_features, components_, columns):
+    """
+    This function will return the most "important"
+    features so we can determine which have the most
+    effect on multi-dimensional scaling
+    """
+    num_columns = len(columns)
+
+    # Scale the principal components by the max value in
+    # the transformed set belonging to that component
+    xvector = components_[0] * max(transformed_features[:,0])
+    yvector = components_[1] * max(transformed_features[:,1])
+
+    # Sort each column by it's length. These are your *original*
+    # columns, not the principal components.
+    important_features = { columns[i] : math.sqrt(xvector[i]**2 + yvector[i]**2) for i in range(num_columns) }
+    important_features = sorted(zip(important_features.values(), important_features.keys()), reverse=True)
+    print("Features by importance:\n", important_features)
+
+get_important_features(T, pca.components_, df.columns.values)
